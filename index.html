@@ -12,13 +12,45 @@
     .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
     .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
     
-    .music-btn {
-      position: absolute; top: 20px; right: 20px; z-index: 20;
-      background: rgba(255, 77, 141, 0.2); border: 2px solid #ff4d8d; color: #fff;
-      padding: 10px 18px; border-radius: 25px; font-size: 0.9rem; cursor: pointer;
-      backdrop-filter: blur(5px); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+    /* Contenedor del reproductor interactivo */
+    .music-player-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 77, 141, 0.15);
+      border: 1px solid #ff4d8d;
+      padding: 8px 15px;
+      border-radius: 25px;
+      backdrop-filter: blur(8px);
     }
-    .music-btn:hover { background: rgba(255, 77, 141, 0.6); transform: scale(1.05); }
+
+    .music-btn {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    #barra-progreso {
+      width: 90px;
+      accent-color: #ff4d8d;
+      cursor: pointer;
+    }
+
+    #tiempo-actual {
+      font-size: 0.8rem;
+      color: #ffd1dc;
+      min-width: 32px;
+    }
   </style>
 </head>
 <body>
@@ -27,7 +59,12 @@
   <div class="footer-subtitle" id="subtitulo-web">Te amo con todo mi corazón❤️✨</div>
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
   
-  <button class="music-btn" id="btn-musica">🎵 Reproducir Música</button>
+  <!-- Mini reproductor interactivamente integrado -->
+  <div class="music-player-container">
+    <button class="music-btn" id="btn-musica">🎵 Reproducir</button>
+    <input type="range" id="barra-progreso" value="0" min="0" max="100" step="0.1">
+    <span id="tiempo-actual">0:00</span>
+  </div>
   <audio id="musica-fondo" loop src="canción1.mp3.mpeg"></audio>
 
   <div id="canvas-container"></div>
@@ -38,17 +75,40 @@
   <script>
     const btnMusica = document.getElementById('btn-musica');
     const musica = document.getElementById('musica-fondo');
+    const barraProgreso = document.getElementById('barra-progreso');
+    const tiempoActual = document.getElementById('tiempo-actual');
     let reproduciendo = false;
 
+    // Play / Pausa
     btnMusica.addEventListener('click', () => {
       if (!reproduciendo) {
         musica.play();
-        btnMusica.innerHTML = "⏸️ Pausar Música";
+        btnMusica.innerHTML = "⏸️ Pausar";
         reproduciendo = true;
       } else {
         musica.pause();
-        btnMusica.innerHTML = "🎵 Reproducir Música";
+        btnMusica.innerHTML = "🎵 Reproducir";
         reproduciendo = false;
+      }
+    });
+
+    // Sincroniza la barra con la canción
+    musica.addEventListener('timeupdate', () => {
+      if (musica.duration) {
+        const porcentaje = (musica.currentTime / musica.duration) * 100;
+        barraProgreso.value = porcentaje;
+
+        const mins = Math.floor(musica.currentTime / 60);
+        const segs = Math.floor(musica.currentTime % 60);
+        tiempoActual.innerText = `${mins}:${segs < 10 ? '0' : ''}${segs}`;
+      }
+    });
+
+    // Permite cambiar el minuto de reproducción arrastrando la barra
+    barraProgreso.addEventListener('input', () => {
+      if (musica.duration) {
+        const nuevoTiempo = (barraProgreso.value / 100) * musica.duration;
+        musica.currentTime = nuevoTiempo;
       }
     });
 
@@ -95,8 +155,8 @@
       // 2. GALAXIA ESPIRAL CON POSICIONES FINALES
       const galaxyGeometry = new THREE.BufferGeometry();
       const galaxyCount = 8000;
-      const galaxyCurrentPos = new Float32Array(galaxyCount * 3); // Empiezan en 0,0,0
-      const galaxyTargetPos = new Float32Array(galaxyCount * 3);  // Destino
+      const galaxyCurrentPos = new Float32Array(galaxyCount * 3);
+      const galaxyTargetPos = new Float32Array(galaxyCount * 3);
       const galaxyCols = new Float32Array(galaxyCount * 3);
       const arms = 3, radius = 28;
 
@@ -113,7 +173,6 @@
         galaxyTargetPos[i*3+1] = destY;
         galaxyTargetPos[i*3+2] = destZ;
 
-        // Todas inician comprimidas en el origen
         galaxyCurrentPos[i*3] = 0;
         galaxyCurrentPos[i*3+1] = 0;
         galaxyCurrentPos[i*3+2] = 0;
@@ -155,10 +214,10 @@
       const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35, transparent: true, opacity: 0.95 }));
       scene.add(heartMesh);
 
-      // 4. GRUPO DE FOTOS Y FRASES (Escala Progresiva)
+      // 4. GRUPO DE FOTOS Y FRASES
       const orbitGroup = new THREE.Group();
       orbitGroup.rotation.x = Math.PI * 0.15;
-      orbitGroup.scale.set(0.001, 0.001, 0.001); // Inicia invisible
+      orbitGroup.scale.set(0.001, 0.001, 0.001);
       scene.add(orbitGroup);
 
       // Frases
@@ -196,35 +255,30 @@
         }, undefined, () => {});
       });
 
-      // --- ANIMACIÓN REAL DEL BIG BANG (INTERPOLACIÓN VEC) ---
+      // --- ANIMACIÓN REAL DEL BIG BANG ---
       let bangProgress = 0;
 
       function animate() {
         requestAnimationFrame(animate);
 
-        // Disparo progresivo de partículas (Big Bang)
         if (bangProgress < 1) {
-          bangProgress += 0.008; // Velocidad de la explosión
+          bangProgress += 0.008;
 
-          // 1. Desplazar partículas de Galaxia desde el centro
           const gPositions = galaxyGeometry.attributes.position.array;
           for (let i = 0; i < galaxyCount * 3; i++) {
             gPositions[i] = THREE.MathUtils.lerp(0, galaxyTargetPos[i], bangProgress);
           }
           galaxyGeometry.attributes.position.needsUpdate = true;
 
-          // 2. Desplazar partículas del Corazón hacia arriba y hacia afuera
           const hPositions = heartGeometry.attributes.position.array;
           for (let i = 0; i < heartParticles * 3; i++) {
             hPositions[i] = THREE.MathUtils.lerp(0, heartTargetPos[i], bangProgress);
           }
           heartGeometry.attributes.position.needsUpdate = true;
 
-          // 3. Desplegar Fotos y Textos gradualmente
           orbitGroup.scale.setScalar(bangProgress);
         }
 
-        // Rotación continua de la galaxia
         heartMesh.rotation.y += 0.002;
         orbitGroup.rotation.y += 0.0012;
         galaxyMesh.rotation.y += 0.0015;
