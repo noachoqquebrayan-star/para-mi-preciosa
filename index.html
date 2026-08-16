@@ -12,23 +12,25 @@
     .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
     .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
     
-    /* Reproductor nativo estilizado y flotante */
+    /* Reproductor nativo estilizado y ARRASTRABLE */
     .music-player-container {
       position: absolute;
       top: 15px;
       right: 15px;
       z-index: 20;
-      background: rgba(255, 77, 141, 0.2);
+      background: rgba(255, 77, 141, 0.25);
       border: 1px solid #ff4d8d;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 20px;
       backdrop-filter: blur(8px);
+      cursor: move; /* Indica que es movible */
+      touch-action: none;
+      box-shadow: 0 0 10px rgba(255, 77, 141, 0.3);
     }
 
-    /* Estilo del reproductor nativo */
     audio {
       height: 35px;
-      width: 220px;
+      width: 210px;
       outline: none;
     }
   </style>
@@ -39,8 +41,8 @@
   <div class="footer-subtitle" id="subtitulo-web">Te amo con todo mi corazón❤️✨</div>
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
   
-  <!-- Controles nativos: Súper estables y con barra de tiempo integrada -->
-  <div class="music-player-container">
+  <!-- Contenedor Arrastrable -->
+  <div class="music-player-container" id="player-drag">
     <audio id="musica-fondo" controls loop src="canción1.mp3.mpeg"></audio>
   </div>
 
@@ -50,6 +52,41 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
+    // Lógica para arrastrar el reproductor con el dedo o mouse
+    const dragItem = document.getElementById("player-drag");
+    let active = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+
+    const dragStart = (e) => {
+      if (e.target.tagName === 'AUDIO') return; // Evita arrastrar si toca los controles de audio
+      initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
+      initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
+      if (e.target === dragItem || dragItem.contains(e.target)) active = true;
+    };
+
+    const dragEnd = () => {
+      initialX = currentX;
+      initialY = currentY;
+      active = false;
+    };
+
+    const drag = (e) => {
+      if (active) {
+        e.preventDefault();
+        currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
+        currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
+        xOffset = currentX;
+        yOffset = currentY;
+        dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+      }
+    };
+
+    document.addEventListener("touchstart", dragStart, false);
+    document.addEventListener("touchend", dragEnd, false);
+    document.addEventListener("touchmove", drag, false);
+    document.addEventListener("mousedown", dragStart, false);
+    document.addEventListener("mouseup", dragEnd, false);
+    document.addEventListener("mousemove", drag, false);
+
     window.addEventListener('load', () => {
       const phrases = [
         "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", 
