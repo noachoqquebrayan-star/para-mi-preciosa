@@ -84,7 +84,7 @@
       controls.dampingFactor = 0.05;
       controls.enablePan = false;
 
-      // 1. Estrellas de Fondo
+      // 1. Estrellas
       const starsGeometry = new THREE.BufferGeometry();
       const starsCount = 3500;
       const starPositions = new Float32Array(starsCount * 3);
@@ -92,35 +92,11 @@
       starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
       scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 })));
 
-      // 2. Corazón Central de Partículas
-      const heartGeometry = new THREE.BufferGeometry();
-      const heartParticles = 3000;
-      const heartPositions = new Float32Array(heartParticles * 3);
-      for (let i = 0; i < heartParticles; i++) {
-        let t = Math.PI * (Math.random() * 2 - 1);
-        let x = 16 * Math.pow(Math.sin(t), 3);
-        let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-        heartPositions[i*3] = x * 0.45; 
-        heartPositions[i*3+1] = y * 0.45; 
-        heartPositions[i*3+2] = (Math.random() - 0.5) * 2.5;
-      }
-      heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
-      const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.35, transparent: true, opacity: 1 });
-      const heartMesh = new THREE.Points(heartGeometry, heartMaterial);
-      scene.add(heartMesh);
-
-      // 3. Agujero Negro Central (Centro Visual)
-      const holeGeo = new THREE.RingGeometry(0.1, 2.2, 32);
-      const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
-      const blackHole = new THREE.Mesh(holeGeo, holeMat);
-      blackHole.rotation.x = Math.PI / 2;
-      blackHole.position.y = -2;
-      scene.add(blackHole);
-
-      // 4. Galaxia Espiral
+      // 2. GALAXIA ESPIRAL CON POSICIONES FINALES
       const galaxyGeometry = new THREE.BufferGeometry();
-      const galaxyCount = 9000;
-      const galaxyPos = new Float32Array(galaxyCount * 3);
+      const galaxyCount = 8000;
+      const galaxyCurrentPos = new Float32Array(galaxyCount * 3); // Empiezan en 0,0,0
+      const galaxyTargetPos = new Float32Array(galaxyCount * 3);  // Destino
       const galaxyCols = new Float32Array(galaxyCount * 3);
       const arms = 3, radius = 28;
 
@@ -129,9 +105,18 @@
         const spinAngle = r * 0.8;
         const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
 
-        galaxyPos[i*3] = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
-        galaxyPos[i*3+1] = (Math.random() - 0.5) * 0.6 - 2;
-        galaxyPos[i*3+2] = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
+        const destX = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
+        const destY = (Math.random() - 0.5) * 0.6 - 2;
+        const destZ = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
+
+        galaxyTargetPos[i*3] = destX;
+        galaxyTargetPos[i*3+1] = destY;
+        galaxyTargetPos[i*3+2] = destZ;
+
+        // Todas inician comprimidas en el origen
+        galaxyCurrentPos[i*3] = 0;
+        galaxyCurrentPos[i*3+1] = 0;
+        galaxyCurrentPos[i*3+2] = 0;
 
         const color = new THREE.Color();
         if (r < radius * 0.3) color.setHex(0xffffff);
@@ -140,17 +125,43 @@
 
         galaxyCols[i*3] = color.r; galaxyCols[i*3+1] = color.g; galaxyCols[i*3+2] = color.b;
       }
-      galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPos, 3));
+
+      galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyCurrentPos, 3));
       galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyCols, 3));
-      const galaxyMaterial = new THREE.PointsMaterial({ size: 0.16, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending });
-      const galaxyMesh = new THREE.Points(galaxyGeometry, galaxyMaterial);
+      const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending }));
       scene.add(galaxyMesh);
 
+      // 3. CORAZÓN CON POSICIONES FINALES
+      const heartGeometry = new THREE.BufferGeometry();
+      const heartParticles = 2500;
+      const heartCurrentPos = new Float32Array(heartParticles * 3);
+      const heartTargetPos = new Float32Array(heartParticles * 3);
+
+      for (let i = 0; i < heartParticles; i++) {
+        let t = Math.PI * (Math.random() * 2 - 1);
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+        
+        heartTargetPos[i*3] = x * 0.45; 
+        heartTargetPos[i*3+1] = y * 0.45; 
+        heartTargetPos[i*3+2] = (Math.random() - 0.5) * 2.5;
+
+        heartCurrentPos[i*3] = 0;
+        heartCurrentPos[i*3+1] = 0;
+        heartCurrentPos[i*3+2] = 0;
+      }
+
+      heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartCurrentPos, 3));
+      const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35, transparent: true, opacity: 0.95 }));
+      scene.add(heartMesh);
+
+      // 4. GRUPO DE FOTOS Y FRASES (Escala Progresiva)
       const orbitGroup = new THREE.Group();
       orbitGroup.rotation.x = Math.PI * 0.15;
+      orbitGroup.scale.set(0.001, 0.001, 0.001); // Inicia invisible
       scene.add(orbitGroup);
 
-      // 5. Frases
+      // Frases
       const coloresTexto = ["#ff80bf", "#ffffff", "#ffcc00", "#00ffff"];
       function createTextTexture(text, colorIndex) {
         const canvas = document.createElement('canvas');
@@ -173,7 +184,7 @@
         orbitGroup.add(sprite);
       });
 
-      // 6. Fotos
+      // Fotos
       const loader = new THREE.TextureLoader();
       misFotos.forEach((foto, index) => {
         loader.load(foto, (tex) => {
@@ -185,23 +196,35 @@
         }, undefined, () => {});
       });
 
-      // --- ANIMACIÓN BIG BANG VÍA CÁMARA Y EXPANSIÓN SEGURA ---
-      let time = 0;
-      const initialCamY = 24;
-      const initialCamZ = 36;
+      // --- ANIMACIÓN REAL DEL BIG BANG (INTERPOLACIÓN VEC) ---
+      let bangProgress = 0;
 
       function animate() {
         requestAnimationFrame(animate);
 
-        // Efecto de alejamiento progresivo de la cámara (Efecto Big Bang suave)
-        if (time < 1) {
-          time += 0.008;
-          // La cámara empieza más cerca y se va alejando suavemente
-          camera.position.y = THREE.MathUtils.lerp(5, initialCamY, time);
-          camera.position.z = THREE.MathUtils.lerp(10, initialCamZ, time);
+        // Disparo progresivo de partículas (Big Bang)
+        if (bangProgress < 1) {
+          bangProgress += 0.008; // Velocidad de la explosión
+
+          // 1. Desplazar partículas de Galaxia desde el centro
+          const gPositions = galaxyGeometry.attributes.position.array;
+          for (let i = 0; i < galaxyCount * 3; i++) {
+            gPositions[i] = THREE.MathUtils.lerp(0, galaxyTargetPos[i], bangProgress);
+          }
+          galaxyGeometry.attributes.position.needsUpdate = true;
+
+          // 2. Desplazar partículas del Corazón hacia arriba y hacia afuera
+          const hPositions = heartGeometry.attributes.position.array;
+          for (let i = 0; i < heartParticles * 3; i++) {
+            hPositions[i] = THREE.MathUtils.lerp(0, heartTargetPos[i], bangProgress);
+          }
+          heartGeometry.attributes.position.needsUpdate = true;
+
+          // 3. Desplegar Fotos y Textos gradualmente
+          orbitGroup.scale.setScalar(bangProgress);
         }
 
-        // Rotaciones continuas de la escena
+        // Rotación continua de la galaxia
         heartMesh.rotation.y += 0.002;
         orbitGroup.rotation.y += 0.0012;
         galaxyMesh.rotation.y += 0.0015;
