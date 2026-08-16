@@ -12,7 +12,6 @@
     .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
     .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
     
-    /* Botón de Música Flotante */
     .music-btn {
       position: absolute; top: 20px; right: 20px; z-index: 20;
       background: rgba(255, 77, 141, 0.2); border: 2px solid #ff4d8d; color: #fff;
@@ -33,12 +32,10 @@
 
   <div id="canvas-container"></div>
 
-  <!-- Librerías desde CDNJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    // Control de audio
     const btnMusica = document.getElementById('btn-musica');
     const musica = document.getElementById('musica-fondo');
     let reproduciendo = false;
@@ -56,7 +53,6 @@
     });
 
     window.addEventListener('load', () => {
-      // Lista expandida de frases románticas
       const phrases = [
         "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", 
         "Nuestras vidas unidas por amor🥰❤️", "Feliz Cumpleaños mi niña✨❤️", 
@@ -65,9 +61,7 @@
         "Gracias por existir ❤️", "Haces mi mundo más bonito 🌎💖", "Mi reina hermosa 👑🥰", 
         "Tu sonrisa ilumina mi vida ✨😊", "Juntos por siempre ♾️❤️", 
         "Eres mi sueño hecho realidad 💫😍", "Amor de mi vida ❤️✨", "Cada día te amo más 🥰💖", 
-        "Mi estrella más brillante 🌟❤️", "Eres mi felicidad 🥳💖", "Te elijo hoy y siempre 💌✨",
-        "Mi universo entero 🌌💖", "Luz de mis ojos ✨👁️", "Contigo todo es mejor 🌸💖",
-        "Eres pura magia ✨💖", "Mi regalo de la vida 🎁❤️", "Mi amor bonito 🥰✨"
+        "Mi estrella más brillante 🌟❤️", "Eres mi felicidad 🥳💖", "Te elijo hoy y siempre 💌✨"
       ];
 
       const misFotos = [
@@ -90,7 +84,7 @@
       controls.dampingFactor = 0.05;
       controls.enablePan = false;
 
-      // 1. Fondo de Estrellas denso
+      // 1. Estrellas de Fondo
       const starsGeometry = new THREE.BufferGeometry();
       const starsCount = 3500;
       const starPositions = new Float32Array(starsCount * 3);
@@ -98,7 +92,7 @@
       starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
       scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 })));
 
-      // 2. Corazón Central de Partículas
+      // 2. Corazón Central (Empieza pequeño e invisible)
       const heartGeometry = new THREE.BufferGeometry();
       const heartParticles = 3000;
       const heartPositions = new Float32Array(heartParticles * 3);
@@ -111,10 +105,20 @@
         heartPositions[i*3+2] = (Math.random() - 0.5) * 2.5;
       }
       heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
-      const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35 }));
+      const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.35, transparent: true, opacity: 0 });
+      const heartMesh = new THREE.Points(heartGeometry, heartMaterial);
+      heartMesh.scale.set(0.001, 0.001, 0.001); // Inicia como un punto diminuto
       scene.add(heartMesh);
 
-      // 3. Remolino de Galaxia Espiral
+      // 3. Agujero Negro Central (Disco Oscuro)
+      const holeGeo = new THREE.RingGeometry(0.1, 2.5, 32);
+      const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+      const blackHole = new THREE.Mesh(holeGeo, holeMat);
+      blackHole.rotation.x = Math.PI / 2;
+      blackHole.position.y = -2;
+      scene.add(blackHole);
+
+      // 4. Galaxia Espiral
       const galaxyGeometry = new THREE.BufferGeometry();
       const galaxyCount = 9000;
       const galaxyPos = new Float32Array(galaxyCount * 3);
@@ -139,14 +143,17 @@
       }
       galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPos, 3));
       galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyCols, 3));
-      const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.16, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending }));
+      const galaxyMaterial = new THREE.PointsMaterial({ size: 0.16, vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+      const galaxyMesh = new THREE.Points(galaxyGeometry, galaxyMaterial);
+      galaxyMesh.scale.set(0.001, 0.001, 0.001);
       scene.add(galaxyMesh);
 
       const orbitGroup = new THREE.Group();
       orbitGroup.rotation.x = Math.PI * 0.15;
+      orbitGroup.scale.set(0.001, 0.001, 0.001);
       scene.add(orbitGroup);
 
-      // 4. Generador de Textos Multicolor
+      // 5. Frases
       const coloresTexto = ["#ff80bf", "#ffffff", "#ffcc00", "#00ffff"];
       function createTextTexture(text, colorIndex) {
         const canvas = document.createElement('canvas');
@@ -160,19 +167,16 @@
         return new THREE.CanvasTexture(canvas);
       }
 
-      // Distribución en dos anillos (interno y externo) para llenar espacio
       phrases.forEach((phrase, index) => {
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(phrase, index), transparent: true }));
-        const currentRadius = (index % 2 === 0) ? 23 : 31; // Alterna distancias
+        const currentRadius = (index % 2 === 0) ? 23 : 31;
         const angle = (index / phrases.length) * Math.PI * 2;
-        const heightVar = (Math.random() - 0.5) * 10;
-        
-        sprite.position.set(Math.cos(angle) * currentRadius, heightVar, Math.sin(angle) * currentRadius);
+        sprite.position.set(Math.cos(angle) * currentRadius, (Math.random() - 0.5) * 10, Math.sin(angle) * currentRadius);
         sprite.scale.set(10, 2.5, 1);
         orbitGroup.add(sprite);
       });
 
-      // 5. Cargar Fotos en Órbita
+      // 6. Fotos
       const loader = new THREE.TextureLoader();
       misFotos.forEach((foto, index) => {
         loader.load(foto, (tex) => {
@@ -184,12 +188,32 @@
         }, undefined, () => {});
       });
 
-      // Animación continua
+      // --- ANIMACIÓN DE EFECTO BIG BANG / EXPANSIÓN ---
+      let progress = 0;
+
       function animate() {
         requestAnimationFrame(animate);
+
+        // Control del nacimiento progresivo
+        if (progress < 1) {
+          progress += 0.006; // Velocidad de expansión del Big Bang
+
+          // Eleva y agranda el corazón desde el agujero negro
+          heartMesh.scale.setScalar(progress);
+          heartMaterial.opacity = progress;
+
+          // Expande el disco galáctico y los elementos flotantes
+          galaxyMesh.scale.setScalar(progress);
+          galaxyMaterial.opacity = progress * 0.85;
+
+          orbitGroup.scale.setScalar(progress);
+        }
+
+        // Rotaciones continuas
         heartMesh.rotation.y += 0.002;
         orbitGroup.rotation.y += 0.0012;
         galaxyMesh.rotation.y += 0.0015;
+
         controls.update();
         renderer.render(scene, camera);
       }
