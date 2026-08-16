@@ -12,44 +12,24 @@
     .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
     .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
     
-    /* Contenedor del reproductor interactivo */
+    /* Reproductor nativo estilizado y flotante */
     .music-player-container {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 15px;
+      right: 15px;
       z-index: 20;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: rgba(255, 77, 141, 0.15);
+      background: rgba(255, 77, 141, 0.2);
       border: 1px solid #ff4d8d;
-      padding: 8px 15px;
-      border-radius: 25px;
+      padding: 5px 10px;
+      border-radius: 20px;
       backdrop-filter: blur(8px);
     }
 
-    .music-btn {
-      background: transparent;
-      border: none;
-      color: #fff;
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    #barra-progreso {
-      width: 90px;
-      accent-color: #ff4d8d;
-      cursor: pointer;
-    }
-
-    #tiempo-actual {
-      font-size: 0.8rem;
-      color: #ffd1dc;
-      min-width: 32px;
+    /* Estilo del reproductor nativo */
+    audio {
+      height: 35px;
+      width: 220px;
+      outline: none;
     }
   </style>
 </head>
@@ -59,13 +39,10 @@
   <div class="footer-subtitle" id="subtitulo-web">Te amo con todo mi corazón❤️✨</div>
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
   
-  <!-- Mini reproductor interactivamente integrado -->
+  <!-- Controles nativos: Súper estables y con barra de tiempo integrada -->
   <div class="music-player-container">
-    <button class="music-btn" id="btn-musica">🎵 Reproducir</button>
-    <input type="range" id="barra-progreso" value="0" min="0" max="100" step="0.1">
-    <span id="tiempo-actual">0:00</span>
+    <audio id="musica-fondo" controls loop src="canción1.mp3.mpeg"></audio>
   </div>
-  <audio id="musica-fondo" loop src="canción1.mp3.mpeg"></audio>
 
   <div id="canvas-container"></div>
 
@@ -73,45 +50,6 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    const btnMusica = document.getElementById('btn-musica');
-    const musica = document.getElementById('musica-fondo');
-    const barraProgreso = document.getElementById('barra-progreso');
-    const tiempoActual = document.getElementById('tiempo-actual');
-    let reproduciendo = false;
-
-    // Play / Pausa
-    btnMusica.addEventListener('click', () => {
-      if (!reproduciendo) {
-        musica.play();
-        btnMusica.innerHTML = "⏸️ Pausar";
-        reproduciendo = true;
-      } else {
-        musica.pause();
-        btnMusica.innerHTML = "🎵 Reproducir";
-        reproduciendo = false;
-      }
-    });
-
-    // Sincroniza la barra con la canción
-    musica.addEventListener('timeupdate', () => {
-      if (musica.duration) {
-        const porcentaje = (musica.currentTime / musica.duration) * 100;
-        barraProgreso.value = porcentaje;
-
-        const mins = Math.floor(musica.currentTime / 60);
-        const segs = Math.floor(musica.currentTime % 60);
-        tiempoActual.innerText = `${mins}:${segs < 10 ? '0' : ''}${segs}`;
-      }
-    });
-
-    // Permite cambiar el minuto de reproducción arrastrando la barra
-    barraProgreso.addEventListener('input', () => {
-      if (musica.duration) {
-        const nuevoTiempo = (barraProgreso.value / 100) * musica.duration;
-        musica.currentTime = nuevoTiempo;
-      }
-    });
-
     window.addEventListener('load', () => {
       const phrases = [
         "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", 
