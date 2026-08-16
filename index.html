@@ -8,9 +8,18 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background-color: #05020a; overflow: hidden; color: #fff; font-family: 'Segoe UI', sans-serif; user-select: none; }
     #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
-    .header-title { position: absolute; top: 5%; width: 100%; text-align: center; font-size: 2.2rem; font-weight: bold; color: #ff4d8d; text-shadow: 0 0 15px #ff4d8d; z-index: 10; pointer-events: none; }
-    .footer-subtitle { position: absolute; bottom: 4%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
-    .instructions { position: absolute; bottom: 10%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
+    .header-title { position: absolute; top: 4%; width: 100%; text-align: center; font-size: 2.2rem; font-weight: bold; color: #ff4d8d; text-shadow: 0 0 15px #ff4d8d; z-index: 10; pointer-events: none; }
+    .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
+    .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
+    
+    /* Botón de Música Flotante */
+    .music-btn {
+      position: absolute; top: 20px; right: 20px; z-index: 20;
+      background: rgba(255, 77, 141, 0.2); border: 2px solid #ff4d8d; color: #fff;
+      padding: 10px 18px; border-radius: 25px; font-size: 0.9rem; cursor: pointer;
+      backdrop-filter: blur(5px); transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
+    }
+    .music-btn:hover { background: rgba(255, 77, 141, 0.6); transform: scale(1.05); }
   </style>
 </head>
 <body>
@@ -18,25 +27,47 @@
   <div class="header-title" id="titulo-web">¡Feliz Cumpleaños, Mi niña preciosa! 🫂🥳❤️</div>
   <div class="footer-subtitle" id="subtitulo-web">Te amo con todo mi corazón❤️✨</div>
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
+  
+  <button class="music-btn" id="btn-musica">🎵 Reproducir Música</button>
+  <audio id="musica-fondo" loop src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112188.mp3"></audio>
+
   <div id="canvas-container"></div>
 
-  <!-- Librerías desde CDNJS (Versiones 100% Compatibles y Garantizadas) -->
+  <!-- Librerías desde CDNJS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
+    // Control de audio
+    const btnMusica = document.getElementById('btn-musica');
+    const musica = document.getElementById('musica-fondo');
+    let reproduciendo = false;
+
+    btnMusica.addEventListener('click', () => {
+      if (!reproduciendo) {
+        musica.play();
+        btnMusica.innerHTML = "⏸️ Pausar Música";
+        reproduciendo = true;
+      } else {
+        musica.pause();
+        btnMusica.innerHTML = "🎵 Reproducir Música";
+        reproduciendo = false;
+      }
+    });
+
     window.addEventListener('load', () => {
+      // Lista expandida de frases románticas
       const phrases = [
         "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", 
         "Nuestras vidas unidas por amor🥰❤️", "Feliz Cumpleaños mi niña✨❤️", 
-        "Hoy es un día hermoso✨🙂‍↔️❤️", "Jaqueline 🥰❤️", 
-        "Mi nalgona preciosa🤭❤️", "Te amooooo un monton🥰❤️", "Siempre Juntos🥰❤️", 
-        "Mi lugar favorito es a tu lado 🌌✨", "Gracias por existir ❤️", 
-        "Haces mi mundo más bonito 🌎💖", "Mi reina hermosa 👑🥰", 
+        "Hoy es un día hermoso✨🙂‍↔️❤️", "Jaqueline 🥰❤️", "Mi nalgona preciosa🤭❤️", 
+        "Te amooooo un monton🥰❤️", "Siempre Juntos🥰❤️", "Mi lugar favorito es a tu lado 🌌✨", 
+        "Gracias por existir ❤️", "Haces mi mundo más bonito 🌎💖", "Mi reina hermosa 👑🥰", 
         "Tu sonrisa ilumina mi vida ✨😊", "Juntos por siempre ♾️❤️", 
-        "Eres mi sueño hecho realidad 💫😍", "Amor de mi vida ❤️✨", 
-        "Cada día te amo más 🥰💖", "Mi estrella más brillante 🌟❤️", 
-        "Eres mi felicidad 🥳💖", "Te elijo hoy y siempre 💌✨"
+        "Eres mi sueño hecho realidad 💫😍", "Amor de mi vida ❤️✨", "Cada día te amo más 🥰💖", 
+        "Mi estrella más brillante 🌟❤️", "Eres mi felicidad 🥳💖", "Te elijo hoy y siempre 💌✨",
+        "Mi universo entero 🌌💖", "Luz de mis ojos ✨👁️", "Contigo todo es mejor 🌸💖",
+        "Eres pura magia ✨💖", "Mi regalo de la vida 🎁❤️", "Mi amor bonito 🥰✨"
       ];
 
       const misFotos = [
@@ -47,7 +78,7 @@
       const container = document.getElementById('canvas-container');
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 22, 32);
+      camera.position.set(0, 24, 36);
 
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -59,17 +90,17 @@
       controls.dampingFactor = 0.05;
       controls.enablePan = false;
 
-      // 1. Estrellas de Fondo
+      // 1. Fondo de Estrellas denso
       const starsGeometry = new THREE.BufferGeometry();
-      const starsCount = 2000;
+      const starsCount = 3500;
       const starPositions = new Float32Array(starsCount * 3);
-      for (let i = 0; i < starsCount * 3; i++) { starPositions[i] = (Math.random() - 0.5) * 200; }
+      for (let i = 0; i < starsCount * 3; i++) { starPositions[i] = (Math.random() - 0.5) * 220; }
       starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-      scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 })));
+      scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 })));
 
       // 2. Corazón Central de Partículas
       const heartGeometry = new THREE.BufferGeometry();
-      const heartParticles = 2500;
+      const heartParticles = 3000;
       const heartPositions = new Float32Array(heartParticles * 3);
       for (let i = 0; i < heartParticles; i++) {
         let t = Math.PI * (Math.random() * 2 - 1);
@@ -77,27 +108,27 @@
         let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
         heartPositions[i*3] = x * 0.45; 
         heartPositions[i*3+1] = y * 0.45; 
-        heartPositions[i*3+2] = (Math.random() - 0.5) * 2;
+        heartPositions[i*3+2] = (Math.random() - 0.5) * 2.5;
       }
       heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
       const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35 }));
       scene.add(heartMesh);
 
-      // 3. Galaxia Espiral (Remolino)
+      // 3. Remolino de Galaxia Espiral
       const galaxyGeometry = new THREE.BufferGeometry();
-      const galaxyCount = 6000;
+      const galaxyCount = 9000;
       const galaxyPos = new Float32Array(galaxyCount * 3);
       const galaxyCols = new Float32Array(galaxyCount * 3);
-      const arms = 3, radius = 24;
+      const arms = 3, radius = 28;
 
       for (let i = 0; i < galaxyCount; i++) {
         const r = Math.pow(Math.random(), 2) * radius;
         const spinAngle = r * 0.8;
         const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
 
-        galaxyPos[i*3] = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5);
-        galaxyPos[i*3+1] = (Math.random() - 0.5) * 0.5 - 2;
-        galaxyPos[i*3+2] = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5);
+        galaxyPos[i*3] = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
+        galaxyPos[i*3+1] = (Math.random() - 0.5) * 0.6 - 2;
+        galaxyPos[i*3+2] = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.2;
 
         const color = new THREE.Color();
         if (r < radius * 0.3) color.setHex(0xffffff);
@@ -108,49 +139,56 @@
       }
       galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPos, 3));
       galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyCols, 3));
-      const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.8 }));
+      const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.16, vertexColors: true, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending }));
       scene.add(galaxyMesh);
 
       const orbitGroup = new THREE.Group();
       orbitGroup.rotation.x = Math.PI * 0.15;
       scene.add(orbitGroup);
 
-      // 4. Frases
-      function createTextTexture(text) {
+      // 4. Generador de Textos Multicolor
+      const coloresTexto = ["#ff80bf", "#ffffff", "#ffcc00", "#00ffff"];
+      function createTextTexture(text, colorIndex) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         canvas.width = 1024; canvas.height = 256;
-        ctx.font = "Bold 65px 'Segoe UI', sans-serif"; ctx.fillStyle = "#ff80bf"; ctx.textAlign = "center";
-        ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 10;
+        ctx.font = "Bold 65px 'Segoe UI', sans-serif"; 
+        ctx.fillStyle = coloresTexto[colorIndex % coloresTexto.length]; 
+        ctx.textAlign = "center";
+        ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 12;
         ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
         return new THREE.CanvasTexture(canvas);
       }
 
+      // Distribución en dos anillos (interno y externo) para llenar espacio
       phrases.forEach((phrase, index) => {
-        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(phrase), transparent: true }));
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(phrase, index), transparent: true }));
+        const currentRadius = (index % 2 === 0) ? 23 : 31; // Alterna distancias
         const angle = (index / phrases.length) * Math.PI * 2;
-        sprite.position.set(Math.cos(angle) * 26, (Math.random() - 0.5) * 8, Math.sin(angle) * 26);
-        sprite.scale.set(11, 2.75, 1);
+        const heightVar = (Math.random() - 0.5) * 10;
+        
+        sprite.position.set(Math.cos(angle) * currentRadius, heightVar, Math.sin(angle) * currentRadius);
+        sprite.scale.set(10, 2.5, 1);
         orbitGroup.add(sprite);
       });
 
-      // 5. Fotos con Carga Segura
+      // 5. Cargar Fotos en Órbita
       const loader = new THREE.TextureLoader();
       misFotos.forEach((foto, index) => {
         loader.load(foto, (tex) => {
           const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
-          const angle = (index / misFotos.length) * Math.PI * 2 + 0.8;
-          sprite.position.set(Math.cos(angle) * 17, (Math.random() - 0.5) * 5, Math.sin(angle) * 17);
+          const angle = (index / misFotos.length) * Math.PI * 2 + 0.5;
+          sprite.position.set(Math.cos(angle) * 16, (Math.random() - 0.5) * 4, Math.sin(angle) * 16);
           sprite.scale.set(7, 7, 1);
           orbitGroup.add(sprite);
         }, undefined, () => {});
       });
 
-      // Animación Continua Directa
+      // Animación continua
       function animate() {
         requestAnimationFrame(animate);
         heartMesh.rotation.y += 0.002;
-        orbitGroup.rotation.y += 0.001;
+        orbitGroup.rotation.y += 0.0012;
         galaxyMesh.rotation.y += 0.0015;
         controls.update();
         renderer.render(scene, camera);
