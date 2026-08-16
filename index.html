@@ -7,10 +7,10 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background-color: #05020a; overflow: hidden; color: #fff; font-family: 'Segoe UI', sans-serif; user-select: none; }
-    #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; }
-    .header-title { position: absolute; top: 6%; width: 100%; text-align: center; font-size: 2.2rem; font-weight: bold; color: #ff4d8d; text-shadow: 0 0 15px #ff4d8d; z-index: 10; pointer-events: none; }
-    .footer-subtitle { position: absolute; bottom: 5%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
-    .instructions { position: absolute; bottom: 12%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
+    #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    .header-title { position: absolute; top: 5%; width: 100%; text-align: center; font-size: 2.2rem; font-weight: bold; color: #ff4d8d; text-shadow: 0 0 15px #ff4d8d; z-index: 10; pointer-events: none; }
+    .footer-subtitle { position: absolute; bottom: 4%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
+    .instructions { position: absolute; bottom: 10%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -20,153 +20,142 @@
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
   <div id="canvas-container"></div>
 
-  <!-- Librerías de Three.js -->
+  <!-- Librerías desde CDNJS (Versiones 100% Compatibles y Garantizadas) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    const TITULO_SUPERIOR = "¡Feliz Cumpleaños, Mi niña preciosa! 🫂🥳❤️";
-    const SUBTITULO_INFERIOR = "Te amo con todo mi corazón❤️✨";
+    window.addEventListener('load', () => {
+      const phrases = [
+        "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", 
+        "Nuestras vidas unidas por amor🥰❤️", "Feliz Cumpleaños mi niña✨❤️", 
+        "Espero que hoy sea un día hermoso✨🙂‍↔️❤️", "Jaqueline 🥰❤️", 
+        "Mi nalgona preciosa🤭❤️", "Te amooooo un monton🥰❤️", "Siempre Juntos🥰❤️"
+      ];
 
-    const frasesDeAmor = [
-      "Te Amodoro❤️❤️❤️", "Eres mi niña preciosa🥰", "Mi Persona Favorita🙂‍↔️", "Nuestras vidas unidas por amor🥰❤️",
-      "Feliz Cumpleaños mi niña✨❤️", "Espero que hoy sea un día hermoso✨🙂‍↔️❤️", "Jaqueline 🥰❤️", "Mi nalgona preciosa🤭❤️", "Te amooooo un monton🥰❤️", "Siempre Juntos🥰❤️"
-    ];
+      const misFotos = [
+        "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg", 
+        "foto5.jpg.jpeg", "foto6.jpg.jpeg", "foto7.jpg.jpeg", "foto8.jpg.jpeg", "foto9.jpg.jpeg"
+      ];
 
-    const misFotos = [
-      "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg", "foto5.jpg.jpeg", "foto6.jpg.jpeg", "foto7.jpg.jpeg", "foto8.jpg.jpeg", "foto9.jpg.jpeg"
-    ];
+      const container = document.getElementById('canvas-container');
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 22, 32);
 
-    document.getElementById('titulo-web').innerText = TITULO_SUPERIOR;
-    document.getElementById('subtitulo-web').innerText = SUBTITULO_INFERIOR;
-
-    const container = document.getElementById('canvas-container');
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 25, 35);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 10;
-    controls.maxDistance = 100;
-
-    // 1. Estrellas
-    const starsGeometry = new THREE.BufferGeometry();
-    const starsCount = 3000;
-    const starPositions = new Float32Array(starsCount * 3);
-    for (let i = 0; i < starsCount * 3; i++) { starPositions[i] = (Math.random() - 0.5) * 200; }
-    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starField = new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.3 }));
-    scene.add(starField);
-
-    // 2. Corazón Central
-    const heartGeometry = new THREE.BufferGeometry();
-    const heartParticles = 2000;
-    const heartPositions = new Float32Array(heartParticles * 3);
-    for (let i = 0; i < heartParticles; i++) {
-      let t = Math.PI * (Math.random() * 2 - 1);
-      let x = 16 * Math.pow(Math.sin(t), 3);
-      let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-      heartPositions[i*3] = x * 0.45; heartPositions[i*3+1] = y * 0.45; heartPositions[i*3+2] = (Math.random() - 0.5) * 2;
-    }
-    heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
-    const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.3, transparent: true, opacity: 0.95 });
-    const heartMesh = new THREE.Points(heartGeometry, heartMaterial);
-    scene.add(heartMesh);
-
-    // 3. Galaxia Espiral
-    const galaxyGeometry = new THREE.BufferGeometry();
-    const galaxyParticlesCount = 8000;
-    const galaxyPositions = new Float32Array(galaxyParticlesCount * 3);
-    const galaxyColors = new Float32Array(galaxyParticlesCount * 3);
-    const arms = 3; const galaxyRadius = 25;
-
-    for (let i = 0; i < galaxyParticlesCount; i++) {
-      const r = Math.pow(Math.random(), 2) * galaxyRadius;
-      const spinAngle = r * 0.8;
-      const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
-
-      const x = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.5;
-      const y = (Math.random() - 0.5) * 0.5 - 2;
-      const z = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5) * 1.5;
-
-      galaxyPositions[i * 3] = x; galaxyPositions[i * 3 + 1] = y; galaxyPositions[i * 3 + 2] = z;
-
-      const mixedColor = new THREE.Color();
-      if (r < galaxyRadius * 0.3) mixedColor.setHex(0xffffff);
-      else if (r < galaxyRadius * 0.7) mixedColor.setHex(0xff0088);
-      else mixedColor.setHex(0x8800ff);
-
-      galaxyColors[i * 3] = mixedColor.r; galaxyColors[i * 3 + 1] = mixedColor.g; galaxyColors[i * 3 + 2] = mixedColor.b;
-    }
-    galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
-    galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
-    const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.15, vertexColors: true, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending }));
-    scene.add(galaxyMesh);
-
-    const orbitGroup = new THREE.Group();
-    orbitGroup.rotation.x = Math.PI * 0.15;
-    scene.add(orbitGroup);
-
-    // 4. Frases
-    function createTextTexture(text) {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = 1024; canvas.height = 256;
-      ctx.font = "Bold 72px 'Segoe UI', sans-serif"; ctx.fillStyle = "#ff80bf"; ctx.textAlign = "center";
-      ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 12; ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
-      return new THREE.CanvasTexture(canvas);
-    }
-
-    const radius = 28;
-    frasesDeAmor.forEach((phrase, index) => {
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(phrase), transparent: true, depthTest: false }));
-      const angle = (index / frasesDeAmor.length) * Math.PI * 2;
-      sprite.position.set(Math.cos(angle) * radius, (Math.random() - 0.5) * 10, Math.sin(angle) * radius);
-      sprite.scale.set(12, 3, 1);
-      orbitGroup.add(sprite);
-    });
-
-    // 5. Cargar Fotos con Protección de Errores
-    const textureLoader = new THREE.TextureLoader();
-    misFotos.forEach((fotoUrl, index) => {
-      textureLoader.load(
-        fotoUrl,
-        (texture) => {
-          const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
-          const angle = (index / misFotos.length) * Math.PI * 2 + 0.8;
-          sprite.position.set(Math.cos(angle) * 18, (Math.random() - 0.5) * 6, Math.sin(angle) * 18);
-          sprite.scale.set(8, 8, 1);
-          orbitGroup.add(sprite);
-        },
-        undefined,
-        (err) => console.log("Foto no encontrada, ignorando para evitar pantalla negra:", fotoUrl)
-      );
-    });
-
-    // Animación Directa
-    function animate() {
-      requestAnimationFrame(animate);
-      heartMesh.rotation.y += 0.002;
-      orbitGroup.rotation.y += 0.001;
-      starField.rotation.y -= 0.0002;
-      galaxyMesh.rotation.y += 0.0015;
-
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.enablePan = false;
+
+      // 1. Estrellas de Fondo
+      const starsGeometry = new THREE.BufferGeometry();
+      const starsCount = 2000;
+      const starPositions = new Float32Array(starsCount * 3);
+      for (let i = 0; i < starsCount * 3; i++) { starPositions[i] = (Math.random() - 0.5) * 200; }
+      starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+      scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 })));
+
+      // 2. Corazón Central de Partículas
+      const heartGeometry = new THREE.BufferGeometry();
+      const heartParticles = 2500;
+      const heartPositions = new Float32Array(heartParticles * 3);
+      for (let i = 0; i < heartParticles; i++) {
+        let t = Math.PI * (Math.random() * 2 - 1);
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+        heartPositions[i*3] = x * 0.45; 
+        heartPositions[i*3+1] = y * 0.45; 
+        heartPositions[i*3+2] = (Math.random() - 0.5) * 2;
+      }
+      heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
+      const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35 }));
+      scene.add(heartMesh);
+
+      // 3. Galaxia Espiral (Remolino)
+      const galaxyGeometry = new THREE.BufferGeometry();
+      const galaxyCount = 6000;
+      const galaxyPos = new Float32Array(galaxyCount * 3);
+      const galaxyCols = new Float32Array(galaxyCount * 3);
+      const arms = 3, radius = 24;
+
+      for (let i = 0; i < galaxyCount; i++) {
+        const r = Math.pow(Math.random(), 2) * radius;
+        const spinAngle = r * 0.8;
+        const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
+
+        galaxyPos[i*3] = Math.cos(branchAngle + spinAngle) * r + (Math.random() - 0.5);
+        galaxyPos[i*3+1] = (Math.random() - 0.5) * 0.5 - 2;
+        galaxyPos[i*3+2] = Math.sin(branchAngle + spinAngle) * r + (Math.random() - 0.5);
+
+        const color = new THREE.Color();
+        if (r < radius * 0.3) color.setHex(0xffffff);
+        else if (r < radius * 0.7) color.setHex(0xff0088);
+        else color.setHex(0x8800ff);
+
+        galaxyCols[i*3] = color.r; galaxyCols[i*3+1] = color.g; galaxyCols[i*3+2] = color.b;
+      }
+      galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPos, 3));
+      galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyCols, 3));
+      const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.8 }));
+      scene.add(galaxyMesh);
+
+      const orbitGroup = new THREE.Group();
+      orbitGroup.rotation.x = Math.PI * 0.15;
+      scene.add(orbitGroup);
+
+      // 4. Frases
+      function createTextTexture(text) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1024; canvas.height = 256;
+        ctx.font = "Bold 65px 'Segoe UI', sans-serif"; ctx.fillStyle = "#ff80bf"; ctx.textAlign = "center";
+        ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 10;
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
+        return new THREE.CanvasTexture(canvas);
+      }
+
+      phrases.forEach((phrase, index) => {
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: createTextTexture(phrase), transparent: true }));
+        const angle = (index / phrases.length) * Math.PI * 2;
+        sprite.position.set(Math.cos(angle) * 26, (Math.random() - 0.5) * 8, Math.sin(angle) * 26);
+        sprite.scale.set(11, 2.75, 1);
+        orbitGroup.add(sprite);
+      });
+
+      // 5. Fotos con Carga Segura
+      const loader = new THREE.TextureLoader();
+      misFotos.forEach((foto, index) => {
+        loader.load(foto, (tex) => {
+          const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+          const angle = (index / misFotos.length) * Math.PI * 2 + 0.8;
+          sprite.position.set(Math.cos(angle) * 17, (Math.random() - 0.5) * 5, Math.sin(angle) * 17);
+          sprite.scale.set(7, 7, 1);
+          orbitGroup.add(sprite);
+        }, undefined, () => {});
+      });
+
+      // Animación Continua Directa
+      function animate() {
+        requestAnimationFrame(animate);
+        heartMesh.rotation.y += 0.002;
+        orbitGroup.rotation.y += 0.001;
+        galaxyMesh.rotation.y += 0.0015;
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
     });
   </script>
 </body>
