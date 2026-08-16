@@ -12,26 +12,98 @@
     .footer-subtitle { position: absolute; bottom: 3%; width: 100%; text-align: center; font-size: 1.2rem; color: #ffd1dc; z-index: 10; pointer-events: none; }
     .instructions { position: absolute; bottom: 8%; width: 100%; text-align: center; font-size: 0.9rem; color: #aaa; z-index: 10; pointer-events: none; }
     
-    /* Reproductor nativo estilizado y ARRASTRABLE */
+    /* Reproductor Neón Arrastrable y Estético */
     .music-player-container {
       position: absolute;
-      top: 15px;
-      right: 15px;
-      z-index: 20;
-      background: rgba(255, 77, 141, 0.25);
-      border: 1px solid #ff4d8d;
-      padding: 6px 12px;
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-      cursor: move; /* Indica que es movible */
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 5, 25, 0.65);
+      border: 1.5px solid #ff4d8d;
+      padding: 8px 16px;
+      border-radius: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 15px rgba(255, 77, 141, 0.4), inset 0 0 10px rgba(255, 77, 141, 0.15);
+      cursor: grab;
       touch-action: none;
-      box-shadow: 0 0 10px rgba(255, 77, 141, 0.3);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    audio {
-      height: 35px;
-      width: 210px;
+    .music-player-container:active {
+      cursor: grabbing;
+      box-shadow: 0 0 22px rgba(255, 77, 141, 0.7);
+    }
+
+    .play-btn {
+      background: #ff4d8d;
+      border: none;
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 10px #ff4d8d;
+      transition: transform 0.2s ease, background-color 0.3s;
+      flex-shrink: 0;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.08);
+      background: #ff669d;
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Barra de progreso personalizada Neón */
+    #barra-progreso {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
       outline: none;
+      cursor: pointer;
+    }
+
+    #barra-progreso::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #ff4d8d;
+      box-shadow: 0 0 8px #ff4d8d;
+      cursor: pointer;
+    }
+
+    #barra-progreso::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: #ff4d8d;
+      box-shadow: 0 0 8px #ff4d8d;
+      cursor: pointer;
+      border: none;
+    }
+
+    #tiempo-actual {
+      font-size: 0.85rem;
+      color: #ffd1dc;
+      font-weight: 600;
+      min-width: 35px;
+      text-shadow: 0 0 5px rgba(255, 209, 220, 0.5);
     }
   </style>
 </head>
@@ -41,10 +113,16 @@
   <div class="footer-subtitle" id="subtitulo-web">Te amo con todo mi corazón❤️✨</div>
   <div class="instructions">Usa el dedo para mover y ver todo...</div>
   
-  <!-- Contenedor Arrastrable -->
+  <!-- Reproductor Estético Integrado -->
   <div class="music-player-container" id="player-drag">
-    <audio id="musica-fondo" controls loop src="canción1.mp3.mpeg"></audio>
+    <button class="play-btn" id="btn-play">▶</button>
+    <div class="player-controls">
+      <input type="range" id="barra-progreso" value="0" min="0" max="100" step="0.1">
+      <span id="tiempo-actual">0:00</span>
+    </div>
   </div>
+
+  <audio id="musica-fondo" loop src="canción1.mp3.mpeg"></audio>
 
   <div id="canvas-container"></div>
 
@@ -52,38 +130,93 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    // Lógica para arrastrar el reproductor con el dedo o mouse
+    // Control de audio neón
+    const btnPlay = document.getElementById('btn-play');
+    const musica = document.getElementById('musica-fondo');
+    const barraProgreso = document.getElementById('barra-progreso');
+    const tiempoActual = document.getElementById('tiempo-actual');
+    let reproduciendo = false;
+
+    btnPlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!reproduciendo) {
+        musica.play();
+        btnPlay.innerHTML = "❚❚";
+        reproduciendo = true;
+      } else {
+        musica.pause();
+        btnPlay.innerHTML = "▶";
+        reproduciendo = false;
+      }
+    });
+
+    musica.addEventListener('timeupdate', () => {
+      if (musica.duration) {
+        const porcentaje = (musica.currentTime / musica.duration) * 100;
+        barraProgreso.value = porcentaje;
+
+        const mins = Math.floor(musica.currentTime / 60);
+        const segs = Math.floor(musica.currentTime % 60);
+        tiempoActual.innerText = `${mins}:${segs < 10 ? '0' : ''}${segs}`;
+      }
+    });
+
+    barraProgreso.addEventListener('input', (e) => {
+      e.stopPropagation();
+      if (musica.duration) {
+        const nuevoTiempo = (barraProgreso.value / 100) * musica.duration;
+        musica.currentTime = nuevoTiempo;
+      }
+    });
+
+    // Sistema de arrastre compatible con Celular y Laptop
     const dragItem = document.getElementById("player-drag");
-    let active = false, currentX, currentY, initialX, initialY, xOffset = 0, yOffset = 0;
+    let active = false;
+    let currentX = 0, currentY = 0, initialX = 0, initialY = 0;
 
     const dragStart = (e) => {
-      if (e.target.tagName === 'AUDIO') return; // Evita arrastrar si toca los controles de audio
-      initialX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - xOffset;
-      initialY = (e.type === "touchstart" ? e.touches[0].clientY : e.clientY) - yOffset;
-      if (e.target === dragItem || dragItem.contains(e.target)) active = true;
+      if (e.target === btnPlay || e.target === barraProgreso) return;
+      e.stopPropagation();
+
+      if (e.type === "touchstart") {
+        initialX = e.touches[0].clientX - currentX;
+        initialY = e.touches[0].clientY - currentY;
+      } else {
+        initialX = e.clientX - currentX;
+        initialY = e.clientY - currentY;
+      }
+
+      if (e.target === dragItem || dragItem.contains(e.target)) {
+        active = true;
+      }
     };
 
     const dragEnd = () => {
-      initialX = currentX;
-      initialY = currentY;
       active = false;
     };
 
     const drag = (e) => {
       if (active) {
         e.preventDefault();
-        currentX = (e.type === "touchmove" ? e.touches[0].clientX : e.clientX) - initialX;
-        currentY = (e.type === "touchmove" ? e.touches[0].clientY : e.clientY) - initialY;
-        xOffset = currentX;
-        yOffset = currentY;
+        e.stopPropagation();
+
+        if (e.type === "touchmove") {
+          currentX = e.touches[0].clientX - initialX;
+          currentY = e.touches[0].clientY - initialY;
+        } else {
+          currentX = e.clientX - initialX;
+          currentY = e.clientY - initialY;
+        }
+
         dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
       }
     };
 
-    document.addEventListener("touchstart", dragStart, false);
+    dragItem.addEventListener("touchstart", dragStart, { passive: false });
     document.addEventListener("touchend", dragEnd, false);
-    document.addEventListener("touchmove", drag, false);
-    document.addEventListener("mousedown", dragStart, false);
+    document.addEventListener("touchmove", drag, { passive: false });
+
+    dragItem.addEventListener("mousedown", dragStart, false);
     document.addEventListener("mouseup", dragEnd, false);
     document.addEventListener("mousemove", drag, false);
 
@@ -127,7 +260,7 @@
       starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
       scene.add(new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 })));
 
-      // 2. GALAXIA ESPIRAL CON POSICIONES FINALES
+      // 2. GALAXIA ESPIRAL
       const galaxyGeometry = new THREE.BufferGeometry();
       const galaxyCount = 8000;
       const galaxyCurrentPos = new Float32Array(galaxyCount * 3);
@@ -165,7 +298,7 @@
       const galaxyMesh = new THREE.Points(galaxyGeometry, new THREE.PointsMaterial({ size: 0.18, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending }));
       scene.add(galaxyMesh);
 
-      // 3. CORAZÓN CON POSICIONES FINALES
+      // 3. CORAZÓN
       const heartGeometry = new THREE.BufferGeometry();
       const heartParticles = 2500;
       const heartCurrentPos = new Float32Array(heartParticles * 3);
@@ -189,13 +322,12 @@
       const heartMesh = new THREE.Points(heartGeometry, new THREE.PointsMaterial({ color: 0xff0055, size: 0.35, transparent: true, opacity: 0.95 }));
       scene.add(heartMesh);
 
-      // 4. GRUPO DE FOTOS Y FRASES
+      // 4. FOTOS Y FRASES
       const orbitGroup = new THREE.Group();
       orbitGroup.rotation.x = Math.PI * 0.15;
       orbitGroup.scale.set(0.001, 0.001, 0.001);
       scene.add(orbitGroup);
 
-      // Frases
       const coloresTexto = ["#ff80bf", "#ffffff", "#ffcc00", "#00ffff"];
       function createTextTexture(text, colorIndex) {
         const canvas = document.createElement('canvas');
@@ -218,7 +350,6 @@
         orbitGroup.add(sprite);
       });
 
-      // Fotos
       const loader = new THREE.TextureLoader();
       misFotos.forEach((foto, index) => {
         loader.load(foto, (tex) => {
@@ -230,7 +361,7 @@
         }, undefined, () => {});
       });
 
-      // --- ANIMACIÓN REAL DEL BIG BANG ---
+      // BIG BANG
       let bangProgress = 0;
 
       function animate() {
