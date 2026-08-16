@@ -39,7 +39,7 @@
 
     // Asegúrate de que las fotos que subiste a GitHub tengan ESTOS nombres exactos.
     const misFotos = [
-      "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg"
+      "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg", "foto5.jpg.jpeg", "foto6.jpg.jpeg", "foto7.jpg.jpeg"
     ];
 
     // ============================================================
@@ -89,7 +89,7 @@
       heartPositions[i*3] = x * 0.45; heartPositions[i*3+1] = y * 0.45; heartPositions[i*3+2] = z * 0.45;
     }
     heartGeometry.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
-    const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.3, transparent: true, opacity: 0.95 });
+    const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.3, transparent: true, opacity: 0 });
     const heartMesh = new THREE.Points(heartGeometry, heartMaterial);
     scene.add(heartMesh);
 
@@ -102,19 +102,19 @@
       const ctx = canvas.getContext('2d');
       canvas.width = 1024; canvas.height = 256;
       ctx.fillStyle = "rgba(0,0,0,0)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = "Bold 36px 'Segoe UI', sans-serif"; ctx.fillStyle = "#ff80bf"; ctx.textAlign = "center";
+      ctx.font = "Bold 72px 'Segoe UI', sans-serif"; ctx.fillStyle = "#ff80bf"; ctx.textAlign = "center";
       ctx.shadowColor = "#ff0055"; ctx.shadowBlur = 12; ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 10);
       return new THREE.CanvasTexture(canvas);
     }
 
-    const radius = 22;
+    const radius = 28;
     frasesDeAmor.forEach((phrase, index) => {
       const texture = createTextTexture(phrase);
       const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
       const sprite = new THREE.Sprite(spriteMaterial);
       const angle = (index / frasesDeAmor.length) * Math.PI * 2;
       sprite.position.x = Math.cos(angle) * radius; sprite.position.z = Math.sin(angle) * radius; sprite.position.y = (Math.random() - 0.5) * 10;
-      sprite.scale.set(8, 12, 1);
+      sprite.scale.set(12, 3, 1);
       orbitGroup.add(sprite);
     });
 
@@ -125,25 +125,32 @@
           const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
           const sprite = new THREE.Sprite(material);
           const angle = (index / misFotos.length) * Math.PI * 2 + 0.8; // Un desfase
-          const photoRadius = 16;
+          const photoRadius = 18;
           sprite.position.x = Math.cos(angle) * photoRadius; sprite.position.z = Math.sin(angle) * photoRadius; sprite.position.y = (Math.random() - 0.5) * 6;
           sprite.scale.set(6, 6, 1); // Fotos un poco más grandes para que sean visibles al alejar
           orbitGroup.add(sprite);
         });
     });
 
-    // Bucle de Animación
+    // Bucle de Animación con Entrada Progresiva
+    let introProgress = 0;
+
     function animate() {
       requestAnimationFrame(animate);
-      
-      // Rotación automática suave (sigue girando sola si no tocas)
+
+      // Efecto de aparición (la galaxia crece desde el centro)
+      if (introProgress < 1) {
+        introProgress += 0.008; // Velocidad de la animación
+        heartMesh.scale.setScalar(introProgress);
+        orbitGroup.scale.setScalar(introProgress);
+        heartMaterial.opacity = introProgress * 0.95;
+      }
+
       heartMesh.rotation.y += 0.002;
       orbitGroup.rotation.y += 0.001;
       starField.rotation.y -= 0.0002;
 
-      // --- NUEVO: ACTUALIZAR LOS CONTROLES EN CADA FRAME ---
       controls.update(); 
-
       renderer.render(scene, camera);
     }
     animate();
