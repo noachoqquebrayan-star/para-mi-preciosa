@@ -38,8 +38,8 @@
     ];
 
     // Asegúrate de que las fotos que subiste a GitHub tengan ESTOS nombres exactos.
-    const misFotos = [
-      "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg", "foto5.jpg.jpeg", "foto6.jpg.jpeg", "foto7.jpg.jpeg"
+    const misFotos = [8
+      "foto1.jpg.jpeg", "foto2.jpg.jpeg", "foto3.jpg.jpeg", "foto4.jpg.jpeg", "foto5.jpg.jpeg", "foto6.jpg.jpeg", "foto7.jpg.jpeg", "foto8.jpg.jpeg", "foto9.jpg.jpeg"
     ];
 
     // ============================================================
@@ -94,6 +94,64 @@
     const heartMaterial = new THREE.PointsMaterial({ color: 0xff0055, size: 0.3, transparent: true, opacity: 0 });
     const heartMesh = new THREE.Points(heartGeometry, heartMaterial);
     scene.add(heartMesh);
+    // ============================================================
+// ✨ DISCO DE GALAXIA ESPIRAL (DEBAJO DEL CORAZÓN)
+// ============================================================
+const galaxyGeometry = new THREE.BufferGeometry();
+const galaxyParticlesCount = 8000; // Cantidad de estrellas en el remolino
+const galaxyPositions = new Float32Array(galaxyParticlesCount * 3);
+const galaxyColors = new Float32Array(galaxyParticlesCount * 3);
+
+const arms = 3; // Número de brazos de la espiral
+const galaxyRadius = 25; // Ancho de la galaxia
+
+for (let i = 0; i < galaxyParticlesCount; i++) {
+  // Posición en la espiral
+  const r = Math.pow(Math.random(), 2) * galaxyRadius;
+  const spinAngle = r * 0.8;
+  const branchAngle = ((i % arms) * 2 * Math.PI) / arms;
+
+  // Dispersión de las estrellas
+  const randomX = (Math.random() - 0.5) * 1.5;
+  const randomY = (Math.random() - 0.5) * 0.5; // Muy plano en la vertical
+  const randomZ = (Math.random() - 0.5) * 1.5;
+
+  const x = Math.cos(branchAngle + spinAngle) * r + randomX;
+  const y = randomY - 2; // Un poco por debajo del centro del corazón
+  const z = Math.sin(branchAngle + spinAngle) * r + randomZ;
+
+  galaxyPositions[i * 3] = x;
+  galaxyPositions[i * 3 + 1] = y;
+  galaxyPositions[i * 3 + 2] = z;
+
+  // Color degradado: Violeta brillante al centro, rosa a las orillas
+  const mixedColor = new THREE.Color();
+  if (r < galaxyRadius * 0.3) {
+    mixedColor.setHex(0xffffff); // Centro blanco brillante
+  } else if (r < galaxyRadius * 0.7) {
+    mixedColor.setHex(0xff0088); // Rosa intenso
+  } else {
+    mixedColor.setHex(0x8800ff); // Púrpura galáctico
+  }
+
+  galaxyColors[i * 3] = mixedColor.r;
+  galaxyColors[i * 3 + 1] = mixedColor.g;
+  galaxyColors[i * 3 + 2] = mixedColor.b;
+}
+
+galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(galaxyPositions, 3));
+galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
+
+const galaxyMaterial = new THREE.PointsMaterial({
+  size: 0.15,
+  vertexColors: true,
+  transparent: true,
+  opacity: 0.8,
+  blending: THREE.AdditiveBlending // Hace que las estrellas brillen al traslaparse
+});
+
+const galaxyMesh = new THREE.Points(galaxyGeometry, galaxyMaterial);
+scene.add(galaxyMesh);
 
     const orbitGroup = new THREE.Group();
     orbitGroup.rotation.x = Math.PI * 0.15; // Inclina el disco para efecto 3D
@@ -152,6 +210,7 @@
       heartMesh.rotation.y += 0.002;
       orbitGroup.rotation.y += 0.001;
       starField.rotation.y -= 0.0002;
+      galaxyMesh.rotation.y += 0.0015; // <-- ESTA ES LA LÍNEA NUEVA
 
       controls.update(); 
       renderer.render(scene, camera);
